@@ -1,134 +1,168 @@
 ```BNF
-ini::= entradas
-;
 
-entradas ::= "void" "main" "()" "{" sentencias:a "}"
+inicio ::= "void" "main" "()" "{" lista_instr "}"
             
-            |archivo_json
+            |error
             
 ;
 
-sentencias ::= sentencias sentencia
-              |sentencias error 
-              |sentencia  
-              |expresion  
+lista_instr ::= lista_instr instruccion
+              |instruccion
 ; 
 
-funciones ::= "void" ID "(" <expresion> ")" "{" c "}"
-             |"void" ID"()" "{" sentencias "}" 
-        
-;
-
-funcion_globales ::= "void" "DefinicionGlobales" "()" "{"sentencias "}"
+instruccion ::= impresion ";"
+    | declaracion:val ";"                                              
+    | list_ifs
+    | list_for
+    | list_switch
+    | list_while
+    | error 
+    | definirGlobales
+    | graficaBarras
     
 ;
 
-sentencia ::= sentencia_print
-            | sentencia_declaracion
-            | sentencia_globales
-            | sentenciaIf
-            | sentenciaFor
-            | sentenciaSwitch
-            | sentenciaWhile
-            | sentenciaDoWhile
-            | funciones
-            |funcion_globales
+definirGlobales ::= "void" "DefinicionGlobales" "()" "{"listaAsignaciones"}"
+    
 ;
 
-sentenciaIf ::= "if" "("expresion ")"{
-	<Sentencias>
-}[sentenciaElse];
-
-sentenciaElse ::= "else if" "("expresion ")"{
-	<Sentencias>
-}[sentenciaElse];
-		| "else" {
-	<Sentencias>
-};
-
-
-sentenciaFor ::="for" (tipo_dato ID "=" expresion; expresion; ID++ ){
-<Sentencias>
-};
-
-sentenciaSwitch ::= "switch" "(" ID ")"{
-sentenciasCase
-}
-
-sentenciasCase ::= "case" expresion: 
-<Sentencias>
-"break;"[sentenciasCase]
-	|"default": 
-<Sentencias>
-"break;"
-
-sentenciaWhile ::="while" "(" expresion ")" {
-<Sentencias>
-};
-
-sentenciaDoWhile ::="do" {
-<Sentencias>
-}"while" "(" expresion ")" ";"
-
-
-
-sentencia_print ::= "Console" "." "write" "(" expresion ")" ";"
+listaAsignaciones ::= listaAsignaciones asignacion
+		   | asignacion
 ;
 
-sentencia_declaracion ::= tipo_dato ID "=" expresion ";" 
-                        |tipo_dato ID ";"    
-                        |tipo_dato "[]" "=" lista ";"
-;
-
-lista ::= "{" elementos"}"
-;
-
-elementos ::= expresion:a   
-            | elementos:a "," elementos
-;
-
-tipo_dato ::= "int"
+asignacion ::= "string" "id" "=" valor ";"                                      
             |"double"
-            |"string"
-            |"bool"
 ;
 
-expresion ::= expresion "+" expresion
-            | expresion "*"  expresion
-            | expresion "-"  expresion
-            | expresion UMENOS expresion
-            | expresion "/" expresion
-            | expresion " > " expresion
-            | expresion " < " expresion
-            | expresion " >= " expresion
-            | expresion " <= " expresion
-            | expresion " == " expresion
-            | expresion " != " expresion
-            | expresion " and " expresion
-            | expresion "or " expresion
-            | "!" expresion
-            | "(" expresion ")"
-            | ENTERO
-            | DECIMAL
-            | ID
-            | STR
-            | BOOLEANO
-            | referencia_json
-;
-referencia_json ::= "${NewValor," STR "," STR "}" 
-;
-archivo_json ::= "{" miembro "}"
+valor ::= "string":a                             
+       | "double":a                              
+       | buscar:a                              
 ;
 
-miembro ::= STR ":" STR 
-        |STR ":" DECIMAL
-        | miembro "," miembro
+buscar ::= "$" "{" "," "string":a "," "string":b "}" ";"              ;
 ;
 
-BLANCOS ::=[ "\r"	|"\t"]+
-ENTERO=[0-9]+
-DECIMALES=[0-9]+("."[  |0-9]+)?
-ID = [A-Za-z_][A-Za-z0-9_]*
-BOOL = "true"| "false"
-STR  =   \"([^\"]|"\\\"")+\"
+graficaBarras ::= "string" opciones
+                | "string" "[]"  listadoValores ";"
+;
+
+opciones ::= "titulo" "=" valor:a                       
+          | "titulox" "=" valor:a    
+          | "tituloy" "=" valor:a                       
+;
+
+listadoValores ::= listadoValores valores
+          | valores
+;
+
+valores ::= "string"
+         | asignacion
+;
+
+
+list_ifs ::= tipo_if lista_instr "}"
+;
+
+tipo_if ::= "if":a "(" expresion:val ")" "{"                                     
+    | "else":a "if":b "(" expresion:val ")" "{"                                  
+    | "else":a "(" expresion:val ")" "{"                                          
+;
+
+list_for ::= tipo_for lista_instr "}"
+;
+
+tipo_for ::= FOR:a "(" tipo_D "texto":val "=" "numeros":b ";" "texto" relacionales "numeros":c ";" "texto" "++" ")" "{"      
+;
+
+list_while ::= tipo_while lista_instr "}"    
+    | tipo_do lista_instr:val "}" do_while                                  
+;
+
+do_while ::= "while" "(" expresion:a ")" ";"                              
+;
+
+tipo_do ::= "do" "{"                                       
+;
+
+tipo_while ::="while" "("  expresion:val ")" "{"                             
+;
+
+list_switch ::= ini_switch tipo_switch "}" 
+;
+
+ini_switch ::= "switch":a "(" expresion:val ")" "{"    
+;
+
+tipo_switch ::= tipo_switch ins_case
+    | ins_case
+;
+
+
+ins_case ::= impcase lista_instr
+    | impcase
+    | impdefault lista_instr
+;
+
+impcase ::= "case" "numeros":a ":" "texto":val "=" "numeros":val2 ";"    
+            | BREAK ";"           
+
+;
+
+impdefault ::= "default" ":" impresion 
+;
+
+
+relacionales ::= ">"
+    | "<"
+    | ">="
+    | "<="
+;
+
+impresion ::= "console" "." "write" "(" expresion:a  ")"                         
+    | "console" "." "write" "(" """expresion:a """ ")"         
+    |error
+;
+
+declaracion ::= tipo_D "texto":id "=" expresion:a                            
+;
+
+tipo_D ::= "entero"
+    | "string"
+    | "double"
+    | "char"
+    | "bool"
+    | error
+;
+
+
+expresion ::= expresion:a "+" expresion:b     
+    | expresion:a "*"  expresion:b            
+    | expresion:a "-"  expresion:b            
+    | expresion:a "/"  expresion:b             
+    | expresion:a "||"  expresion:b                
+    | expresion:a "&&" expresion:b               
+    | expresion:a "!" expresion:b              
+    | expresion:a "<" expresion:b           
+    | expresion:a ">" expresion:b           
+    | expresion:a ">=" expresion:b            
+    | expresion:a "<=" expresion:b            
+    | expresion:a "==" expresion:b        
+    | expresion:a "!=" expresion:b          
+    
+    | "entero":a                                  
+    | "string"
+    | "double"
+    | "char"
+    | "bool"                                  
+    | "str":a "+" expresion:b                     
+    | "true":a                                    
+    | "false":a                                   
+    | "str":a                                     
+    | "strc":a                                    
+    | "numeros":a                                
+    | "texto":a                                  
+    | error
+;
+
+
 ```
